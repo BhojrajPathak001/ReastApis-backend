@@ -4,9 +4,12 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const { default: mongoose } = require("mongoose");
 const MONGODB_URI = `mongodb+srv://bhojrajpathak:kcucA3wliearQpM4@cluster0.90qm6ik.mongodb.net/messages?retryWrites=true&w=majority&appName=Cluster0`;
-const feedRoutes = require("./routes/feed");
-const authRoutes = require("./routes/auth");
 const multer = require("multer");
+const { graphqlHTTP } = require("express-graphql");
+const graphqlSchema = require("./graphql/schema");
+const graphqlResolver = require("./graphql/resolvers");
+const auth = require("./middlware/auth");
+
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "images");
@@ -21,6 +24,7 @@ const fileStorage = multer.diskStorage({
 
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
 app.use(bodyParser.json()); // application/json
+
 app.use(
   multer({
     storage: fileStorage,
@@ -38,7 +42,6 @@ app.use(
   }).single("image")
 );
 app.use("/images", express.static(path.join(__dirname, "images"))); // yeh /images par jo bhi request jayegi usko images folder me bhej dega aur usme se images publicly availabe honge.
-
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -46,13 +49,33 @@ app.use((req, res, next) => {
     "OPTIONS, GET, POST, PUT, PATCH, DELETE"
   );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
   next();
 });
 
-app.use("/feed", feedRoutes);
-app.use("/auth", authRoutes);
+app.use(auth);
+
+app.use(
+  "/graphql",
+  graphqlHTTP({
+    schema: graphqlSchema,
+    rootValue: graphqlResolver,
+    graphiql: true,
+    formatError(err) {
+      if (!err.originalError) {
+        return err;
+      }
+      const data = err.originalError.data;
+      const message = err.message || "An error occured";
+      const code = err.originalError.code || 500;
+      return { message: message, status: code, data: data };
+    },
+  })
+);
+
 app.use((err, req, res, next) => {
-  console.log(err);
   const status = err.statusCode || 500;
   const data = err.data;
   const message = err.message;
@@ -63,11 +86,7 @@ mongoose
   .connect(MONGODB_URI)
   .then((result) => {
     console.log("mongodb connected");
-    const server = app.listen(8080);
-    const io = require("./socket").init(server);
-    io.on("connection", (socket) => {
-      console.log("client connected");
-    });
+    app.listen(8080);
   })
   .catch((err) => {
     console.log(err);
