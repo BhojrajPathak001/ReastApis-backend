@@ -89,17 +89,18 @@ module.exports = {
       error.code = 422;
       throw error;
     }
-    const post = new Post({
-      title: title,
-      imageUrl: imageUrl,
-      content: content,
-    });
-    const user = await User.findById(user._id);
+    const user = await User.findById(req.userId);
     if (!user) {
       const error = new Error("Invalid user");
       error.code = 401;
       throw error;
     }
+    const post = new Post({
+      title: title,
+      imageUrl: imageUrl,
+      content: content,
+      creator: user,
+    });
     const createdPost = await post.save();
     console.log(111, createdPost._doc);
     user.posts.push(createdPost);
@@ -108,7 +109,6 @@ module.exports = {
       _id: createdPost._id.toString(),
       cratedAt: createdPost.createdAt.toISOString(),
       updatedAt: createdPost.updatedAt.toISOString(),
-      creator: user,
     };
   },
 };
