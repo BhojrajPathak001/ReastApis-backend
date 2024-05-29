@@ -20,10 +20,15 @@ type User {
     posts:[Post!]!
 }
 
+
 input UserInputData {
     email:String!
     name:String!
     password:String!
+}
+type PostData{
+    posts:[Post!]!
+    totalPosts:Int!
 }
 
 input PostInputData {
@@ -44,6 +49,7 @@ type AuthData{
 
 type RootQuery{
     login(email:String!,password:String!):AuthData!
+    posts:PostData!
 }
 
 schema {
