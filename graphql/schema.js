@@ -50,6 +50,7 @@ type AuthData{
 type RootQuery{
     login(email:String!,password:String!):AuthData!
     posts(page:Int):PostData!
+    post(postId:String!):Post!
 }
 
 schema {
