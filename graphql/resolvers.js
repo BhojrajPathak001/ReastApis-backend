@@ -102,7 +102,6 @@ module.exports = {
       creator: user,
     });
     const createdPost = await post.save();
-    console.log(111, createdPost._doc);
     user.posts.push(createdPost);
     await user.save();
     return {
@@ -112,15 +111,23 @@ module.exports = {
       updatedAt: createdPost.updatedAt.toISOString(),
     };
   },
-  posts: async function (args, req) {
+  posts: async function ({ page }, req) {
     if (!req.isAuth) {
       const error = new Error("Not authenticated");
       error.code = 401;
       throw error;
     }
+    if (!page) {
+      page = 1;
+    }
+    const perPage = 2;
     const totalPosts = await Post.find().countDocuments();
-    const posts = await Post.find().sort({ cratedAt: -1 }).populate("creator");
-
+    const posts = await Post.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .populate("creator");
+    console.log(posts);
     return {
       posts: posts.map((p) => {
         return {
@@ -132,5 +139,14 @@ module.exports = {
       }),
       totalPosts: totalPosts,
     };
+  },
+  post: async function ({ postId }, req) {
+    const post = await Post.findById(postId).populate("creator");
+    if (!post) {
+      const error = new Error("Could not find the post");
+      error.statusCode = 404;
+      throw err;
+    }
+    return { ...post._doc };
   },
 };
