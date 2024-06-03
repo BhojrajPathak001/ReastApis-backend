@@ -9,8 +9,7 @@ const { graphqlHTTP } = require("express-graphql");
 const graphqlSchema = require("./graphql/schema");
 const graphqlResolver = require("./graphql/resolvers");
 const auth = require("./middlware/auth");
-const fs = require("fs");
-
+const clearImage = require("./utilities").clearImage;
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "images");
@@ -60,7 +59,7 @@ app.use(auth);
 
 app.put("/post-image", (req, res, next) => {
   if (!req.isAuth) {
-    throw new Error("Not authenticated" );
+    throw new Error("Not authenticated");
   }
   if (!req.file) {
     return res.status(200).json({ message: "NO file provided" });
@@ -107,8 +106,3 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
-
-const clearImage = (filePath) => {
-  filePath = path.join(__dirname, "..", filePath);
-  fs.unlink(filePath, (err) => console.log(err));
-};

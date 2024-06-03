@@ -37,10 +37,16 @@ input PostInputData {
     content:String!
 }
 
+type DeleteResponse {
+    success: Boolean!
+    message: String
+    deletedPostId: ID
+  }
 type RootMutation {
     createUser(userInput:UserInputData):User!
     createPost(postInput:PostInputData):Post!
     updatePost(id:ID!,postInput:PostInputData):Post!
+    deletePost(postId:ID!):DeleteResponse
 }
 
 type AuthData{
@@ -53,6 +59,7 @@ type RootQuery{
     posts(page:Int):PostData!
     post(postId:String!):Post!
 }
+
 
 schema {
     query:RootQuery
