@@ -47,6 +47,7 @@ type RootMutation {
     createPost(postInput:PostInputData):Post!
     updatePost(id:ID!,postInput:PostInputData):Post!
     deletePost(postId:ID!):DeleteResponse
+    updateStatus(status:String!):User!
 }
 
 type AuthData{
@@ -58,6 +59,7 @@ type RootQuery{
     login(email:String!,password:String!):AuthData!
     posts(page:Int):PostData!
     post(postId:String!):Post!
+    user:User!
 }
 
 
