@@ -98,7 +98,9 @@ app.use((err, req, res, next) => {
 });
 
 mongoose
-  .connect(MONGODB_URI)
+  .connect(
+    `mongodb+srv://bhojrajpathak:kcucA3wliearQpM4@cluster0.90qm6ik.mongodb.net/messages?retryWrites=true&w=majority&appName=Cluster0`
+  )
   .then((result) => {
     console.log("mongodb connected");
     app.listen(8080);
